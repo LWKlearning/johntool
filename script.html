@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>about:blank</title>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #3b82f6; --success: #22c55e; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+        
+        .container { width: 100%; max-width: 1000px; }
+        header { text-align: center; margin-bottom: 2rem; }
+
+        /* Tools Section */
+        .tools { background: var(--card); padding: 1.5rem; border-radius: 12px; border: 1px solid #334155; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+        .tool-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        input { flex: 1; min-width: 200px; padding: 0.75rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; outline: none; }
+        input:focus { border-color: var(--accent); }
+        
+        .btn-row { display: flex; gap: 0.5rem; }
+        button { padding: 0.75rem 1.25rem; border-radius: 6px; border: none; background: var(--accent); color: white; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        button.secondary { background: #475569; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* Grid Section */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+        .game-card { background: var(--card); padding: 1.5rem; border-radius: 10px; text-align: center; border: 1px solid #334155; display: flex; flex-direction: column; gap: 0.75rem; }
+        .game-card h3 { margin: 0; text-transform: capitalize; font-size: 1.1rem; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .launch-btn { background: var(--accent); color: white; text-decoration: none; padding: 0.6rem; border-radius: 5px; font-weight: bold; cursor: pointer; text-align: center; }
+        .copy-btn { background: #475569; color: white; padding: 0.5rem; border-radius: 5px; font-size: 0.85rem; border: none; cursor: pointer; }
+        
+        .status { margin-bottom: 1rem; font-style: italic; opacity: 0.7; text-align: center; }
+        #loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.9); align-items: center; justify-content: center; z-index: 100; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>John Butler Tool</h1>
+            <div id="status" class="status">Syncing games...</div>
+        </header>
+
+        <section class="tools">
+            <div class="tool-row">
+                <input type="text" id="searchInput" placeholder="Search games list..." oninput="filterGames()">
+            </div>
+            <div class="tool-row">
+                <input type="text" id="convertInput" placeholder="Paste link: https://johnbutlergames.com/game.html?game=slug">
+                <div class="btn-row">
+                    <button onclick="convertAndGo()">Convert & Go</button>
+                    <button class="secondary" id="convertCopyBtn" onclick="convertAndCopy()">Copy Link</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="game-grid" id="gameGrid"></div>
+    </div>
+
+    <div id="loader"><h2>Bypassing junk...</h2></div>
+
+    <script>
+        const WORKER_URL = "https://johntool.maxandbudzhaha.workers.dev/";
+        let allSlugs = [];
+
+        async function init() {
+            const status = document.getElementById('status');
+            try {
+                const response = await fetch(`${WORKER_URL}?allgames`);
+                allSlugs = await response.json();
+                status.innerText = `${allSlugs.length} games available.`;
+                renderGrid(allSlugs);
+            } catch (e) {
+                status.innerText = "Connection failed.";
+            }
+        }
+
+        function renderGrid(slugs) {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+            slugs.forEach(slug => {
+                const displayTitle = slug.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `
+                    <h3>${displayTitle}</h3>
+                    <div class="btn-group">
+                        <a class="launch-btn" onclick="launch('${slug}')">Play Now</a>
+                        <button class="copy-btn" onclick="copyToClipboard('${WORKER_URL}?game=${slug}', this)">Copy Link</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterGames() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allSlugs.filter(s => s.toLowerCase().includes(query));
+            renderGrid(filtered);
+        }
+
+        function extractSlug() {
+            const val = document.getElementById('convertInput').value;
+            try {
+                const url = new URL(val);
+                return url.searchParams.get('game');
+            } catch (e) {
+                // If not a URL, maybe it's just the slug
+                return val.trim() || null;
+            }
+        }
+
+        function convertAndGo() {
+            const slug = extractSlug();
+            if (slug) launch(slug);
+            else alert("Could not find a game slug in that link.");
+        }
+
+        function convertAndCopy() {
+            const slug = extractSlug();
+            const btn = document.getElementById('convertCopyBtn');
+            if (slug) {
+                copyToClipboard(`${WORKER_URL}?game=${slug}`, btn);
+            } else {
+                alert("Please enter a valid link or slug first.");
+            }
+        }
+
+        function launch(slug) {
+            document.getElementById('loader').style.display = 'flex';
+            window.location.href = `${WORKER_URL}?game=${slug}`;
+        }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "Copied!";
+                const originalBg = btn.style.background;
+                btn.style.background = "var(--success)";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = originalBg;
+                }, 1500);
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
