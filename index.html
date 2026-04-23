@@ -37,42 +37,7 @@
 </head>
 <body>
 
-      <style>
-    #intro-video-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: black;
-      z-index: 99999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: opacity 1s ease;
-    }
-    #intro-video-btn {
-      position: absolute;
-      width: 100%; height: 100%;
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      z-index: 100001;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #intro-video-player {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      display: none;
-    }
-  </style>
 
-  <div id="intro-video-overlay">
-    <button id="intro-video-btn">Click to Play</button>
-    <video id="intro-video-player" playsinline>
-      <source src="https://cdn.jsdelivr.net/gh/LWKlearning/LWKlearning.github.io@main/lwklearning%20intro.mp4" type="video/mp4">
-    </video>
-  </div>
 
     <div class="container">
         <header>
@@ -185,5 +150,41 @@
 
         init();
     </script>
+          <style>
+    #intro-video-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: black;
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 1s ease;
+    }
+    #intro-video-btn {
+      position: absolute;
+      width: 100%; height: 100%;
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 100001;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #intro-video-player {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      display: none;
+    }
+  </style>
+
+  <div id="intro-video-overlay">
+    <button id="intro-video-btn">Click to Play</button>
+    <video id="intro-video-player" playsinline>
+      <source src="https://cdn.jsdelivr.net/gh/LWKlearning/LWKlearning.github.io@main/lwklearning%20intro.mp4" type="video/mp4">
+    </video>
+  </div>
 </body>
 </html>
